@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Team Bubble Chart with AI Celebrations</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f4f4f9;
+        overflow: hidden;
+        position: relative;
+        height: 100vh;
+    }
+    .bubble {
+        position: absolute;
+        border-radius: 50%;
+        width: 150px;
+        height: 150px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        text-align: center;
+        cursor: pointer;
+        overflow: hidden;
+        padding: 10px;
+    }
+    .bubble img {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        margin-bottom: 5px;
+    }
+    .stars {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 5px;
+    }
+    .stars span {
+        color: gold;
+        font-size: 16px;
+        margin: 1px;
+    }
+    .navigator {
+        background: linear-gradient(to bottom right, purple, black);
+        color: white;
+    }
+    .explorer {
+        background: linear-gradient(to bottom right, fuchsia, white);
+        color: black;
+    }
+    .modal, .edit-form {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        z-index: 1000;
+        width: 300px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        z-index: 999;
+    }
+</style>
+</head>
+<body>
+<div class='overlay' id='overlay' onclick='closeModal()'></div>
+<div class='modal' id='modal'>
+    <h2 id='modalName'></h2>
+    <p><strong>Position:</strong> <span id='modalPosition'></span></p>
+    <p><strong>Responsibilities:</strong> <span id='modalResponsibilities'></span></p>
+    <p><strong>Badge:</strong> <span id='modalBadge'></span></p>
+    <p><strong>AI Celebrations:</strong></p>
+    <ul id='modalCelebrations'></ul>
+    <button onclick='editBubble()'>Edit</button>
+</div>
+<div class='edit-form' id='editForm'>
+    <h3>Edit Bubble Info</h3>
+    <input type='text' id='editName' placeholder='Name'><br><br>
+    <input type='text' id='editPosition' placeholder='Position'><br><br>
+    <input type='text' id='editResponsibilities' placeholder='Responsibilities'><br><br>
+    <input type='text' id='editBadge' placeholder='Badge'><br><br>
+    <input type='text' id='editImage' placeholder='Image URL'><br><br>
+    <textarea id='editCelebrations' placeholder='Enter up to 20 AI celebrations, separated by commas'></textarea><br><br>
+    <button onclick='saveEdit()'>Save</button>
+</div>
+<script>
+let teammates = [
+    { name: "Paula", role: "navigator", position: "AI Navigator", responsibilities: "Customize your role", badge: "✅", image: "", celebrations: [] },
+    { name: "Robertson", role: "navigator", position: "AI Navigator", responsibilities: "Customize your role", badge: "✅", image: "", celebrations: [] }
+];
+
+let currentBubble = null;
+
+function createBubbles() {
+    document.querySelectorAll('.bubble').forEach(b => b.remove());
+    teammates.forEach((mate, index) => {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble ' + mate.role;
+        bubble.innerHTML = `<img src='${mate.image || "https://via.placeholder.com/60"}'><div>${mate.name}</div><div class='stars'>${"★".repeat(mate.celebrations.length)}</div>`;
+        bubble.style.top = Math.random() * (window.innerHeight - 150) + 'px';
+        bubble.style.left = Math.random() * (window.innerWidth - 150) + 'px';
+        document.body.appendChild(bubble);
+
+        let dx = (Math.random() - 0.5) * 2;
+        let dy = (Math.random() - 0.5) * 2;
+        let speed = Math.random() * 2 + 0.5;
+
+        function move() {
+            let rect = bubble.getBoundingClientRect();
+            let x = rect.left + dx * speed;
+            let y = rect.top + dy * speed;
+            if (x < 0 || x > window.innerWidth - 150) dx = -dx;
+            if (y < 0 || y > window.innerHeight - 150) dy = -dy;
+            bubble.style.left = Math.max(0, Math.min(window.innerWidth - 150, x)) + 'px';
+            bubble.style.top = Math.max(0, Math.min(window.innerHeight - 150, y)) + 'px';
+            requestAnimationFrame(move);
+        }
+        move();
+
+        bubble.onclick = () => {
+            currentBubble = index;
+            document.getElementById('modalName').innerText = mate.name;
+            document.getElementById('modalPosition').innerText = mate.position;
+            document.getElementById('modalResponsibilities').innerText = mate.responsibilities;
+            document.getElementById('modalBadge').innerText = mate.badge;
+            document.getElementById('modalCelebrations').innerHTML = mate.celebrations.map(c => `<li>${c}</li>`).join('');
+            document.getElementById('modal').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        };
+    });
+}
+
+function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('editForm').style.display = 'none';
+}
+
+function editBubble() {
+    const mate = teammates[currentBubble];
+    document.getElementById('editName').value = mate.name;
+    document.getElementById('editPosition').value = mate.position;
+    document.getElementById('editResponsibilities').value = mate.responsibilities;
+    document.getElementById('editBadge').value = mate.badge;
+    document.getElementById('editImage').value = mate.image;
+    document.getElementById('editCelebrations').value = mate.celebrations.join(', ');
+    document.getElementById('editForm').style.display = 'block';
+}
+
+function saveEdit() {
+    const mate = teammates[currentBubble];
+    mate.name = document.getElementById('editName').value;
+    mate.position = document.getElementById('editPosition').value;
+    mate.responsibilities = document.getElementById('editResponsibilities').value;
+    mate.badge = document.getElementById('editBadge').value;
+    mate.image = document.getElementById('editImage').value;
+    mate.celebrations = document.getElementById('editCelebrations').value.split(',').map(c => c.trim()).slice(0, 20);
+    closeModal();
+    createBubbles();
+}
+
+createBubbles();
+</script>
+</body>
+</html>
